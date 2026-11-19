@@ -26,6 +26,12 @@ class TaskViewModel(
             repository.insertTask(TaskEntity(title = title))
         }
     }
+
+    fun updateTask(task: Task){
+        viewModelScope.launch {
+            repository.updateTask(task.toEntity())
+        }
+    }
     // Factory để tạo ViewModel kèm Repository (vì chưa dùng Hilt)
     class Factory(private val repository: TaskRepository): ViewModelProvider.Factory{
         @Suppress("UNCHECKED_CAST")
@@ -37,6 +43,12 @@ class TaskViewModel(
 
 // Hàm mapping: TaskEntity (data layer) -> Task (UI layer)
 private fun TaskEntity.toTask() = Task(
+    id = this.id,
+    title = this.title,
+    description = this.description,
+    isDone = this.isDone
+)
+private fun Task.toEntity() = TaskEntity(
     id = this.id,
     title = this.title,
     description = this.description,

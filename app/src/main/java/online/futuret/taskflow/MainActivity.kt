@@ -5,6 +5,7 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.foundation.clickable
 
 import androidx.compose.foundation.layout.Arrangement
 
@@ -79,7 +80,8 @@ fun TaskFlowHomeScreen(modifier: Modifier = Modifier, viewModelFactory: TaskView
     val viewModel: TaskViewModel = viewModel(factory = viewModelFactory)
     val tasks by viewModel.tasks.collectAsStateWithLifecycle()
 
-    var showAddDialog by remember { mutableStateOf(false) }
+    var editingTask by remember { mutableStateOf<Task?>(null) }
+//    var showAddDialog by remember { mutableStateOf(false) }
 
     Scaffold(
         topBar = {
@@ -89,7 +91,7 @@ fun TaskFlowHomeScreen(modifier: Modifier = Modifier, viewModelFactory: TaskView
         },
         floatingActionButton = {
             FloatingActionButton(onClick = {
-                showAddDialog = true
+                editingTask = Task(id = 0, title = "", description = "", isDone = false)
             }) {
                 Icon(imageVector = Icons.Default.Add, contentDescription = "Thêm task")
             }
@@ -103,29 +105,39 @@ fun TaskFlowHomeScreen(modifier: Modifier = Modifier, viewModelFactory: TaskView
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             items(items = tasks, key = { it.id }) { task ->
-                TaskCard(task = task)
+                TaskCard(task = task, onClick = {editingTask = task})
             }
         }
 
     }
-    if(showAddDialog){
-        AddTaskDialog(
-            onDismiss = { showAddDialog = false },
-            onConfirm = { title ->
-                viewModel.addTask(title)
-                showAddDialog = false
+    editingTask?.let {task ->
+        TaskFormDialog(
+            initialTitle = task.title,
+            isEditing = task.id != 0,
+            onDismiss = { editingTask = null },
+            onConfirm = { newTitle ->
+               if(task.id == 0){
+                   viewModel.addTask(newTitle)
+               }else {
+                   viewModel.updateTask(task.copy(title = newTitle))
+               }
+               editingTask = null
             }
         )
     }
 }
 
 @Composable
-fun AddTaskDialog(onDismiss: () -> Unit, onConfirm: (String) -> Unit) {
-    var title by remember { mutableStateOf("") }
+fun TaskFormDialog(
+    initialTitle: String,
+    isEditing: Boolean,
+    onDismiss: () -> Unit,
+    onConfirm: (String) -> Unit) {
+    var title by remember { mutableStateOf(initialTitle) }
 
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("Task mới") },
+        title = { Text(if (isEditing) "Sửa task" else "Task mới") },
         text = {
             OutlinedTextField(
                 value = title,
@@ -154,8 +166,8 @@ fun AddTaskDialog(onDismiss: () -> Unit, onConfirm: (String) -> Unit) {
 }
 
 @Composable
-fun TaskCard(task: Task) {
-    Card(modifier = Modifier.fillMaxWidth()) {
+fun TaskCard(task: Task,onClick: () -> Unit) {
+    Card(modifier = Modifier.fillMaxWidth().clickable(onClick = onClick)) {
         Row(
             modifier = Modifier.padding(12.dp),
             verticalAlignment = Alignment.CenterVertically
