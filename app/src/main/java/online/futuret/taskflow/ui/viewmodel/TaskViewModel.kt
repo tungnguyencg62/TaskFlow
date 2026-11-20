@@ -32,6 +32,12 @@ class TaskViewModel(
             repository.updateTask(task.toEntity())
         }
     }
+
+    fun deleteTask(task: Task){
+        viewModelScope.launch {
+            repository.deleteTask(task.toEntity())
+        }
+    }
     // Factory để tạo ViewModel kèm Repository (vì chưa dùng Hilt)
     class Factory(private val repository: TaskRepository): ViewModelProvider.Factory{
         @Suppress("UNCHECKED_CAST")
