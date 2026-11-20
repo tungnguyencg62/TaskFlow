@@ -7,15 +7,12 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
@@ -32,12 +29,10 @@ import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
-
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SwipeToDismissBox
 import androidx.compose.material3.SwipeToDismissBoxValue
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextField
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.rememberSwipeToDismissBoxState
 import androidx.compose.runtime.Composable
@@ -48,7 +43,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextDecoration
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -111,27 +105,28 @@ fun TaskFlowHomeScreen(modifier: Modifier = Modifier, viewModelFactory: TaskView
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             items(items = tasks, key = { it.id }) { task ->
-                SwipeToDismissTaskItem(task = task,
-                    onClick = {editingTask = task},
+                SwipeToDismissTaskItem(
+                    task = task,
+                    onClick = { editingTask = task },
                     onDelete = {
-                    viewModel.deleteTask(task)
-                })
+                        viewModel.deleteTask(task)
+                    })
             }
         }
 
     }
-    editingTask?.let {task ->
+    editingTask?.let { task ->
         TaskFormDialog(
             initialTitle = task.title,
             isEditing = task.id != 0,
             onDismiss = { editingTask = null },
             onConfirm = { newTitle ->
-               if(task.id == 0){
-                   viewModel.addTask(newTitle)
-               }else {
-                   viewModel.updateTask(task.copy(title = newTitle))
-               }
-               editingTask = null
+                if (task.id == 0) {
+                    viewModel.addTask(newTitle)
+                } else {
+                    viewModel.updateTask(task.copy(title = newTitle))
+                }
+                editingTask = null
             }
         )
     }
@@ -142,8 +137,29 @@ fun TaskFormDialog(
     initialTitle: String,
     isEditing: Boolean,
     onDismiss: () -> Unit,
-    onConfirm: (String) -> Unit) {
+    onConfirm: (String) -> Unit
+) {
     var title by remember { mutableStateOf(initialTitle) }
+    var errorMessage by remember { mutableStateOf<String?>(null) }
+
+    fun validate(): Boolean {
+        return when {
+            title.isBlank() -> {
+                errorMessage = "Tên task không được để trống"
+                false
+            }
+
+            title.length > 100 -> {
+                errorMessage = "Tên task không được quá 100 ký tự"
+                false
+            }
+
+            else -> {
+                errorMessage = null
+                true
+            }
+        }
+    }
 
     AlertDialog(
         onDismissRequest = onDismiss,
@@ -151,20 +167,30 @@ fun TaskFormDialog(
         text = {
             OutlinedTextField(
                 value = title,
-                onValueChange = { title = it },
-                label = { Text("Tên task") }
+                onValueChange = {
+                    title = it
+                    if (errorMessage != null) errorMessage = null
+                },
+                label = { Text("Tên task") },
+                singleLine = true,
+                isError = errorMessage != null,
+                supportingText = {
+                    errorMessage?.let {
+                        Text(it, color = MaterialTheme.colorScheme.error)
+                    }
+                }
             )
         },
         confirmButton = {
             Button(
                 onClick = {
-                    if (title.isNotBlank()) {
-                        onConfirm(title)
+                    if (validate()) {
+                        onConfirm(title.trim())
                     }
                 },
-                enabled = title.isNotBlank()
-            ) {
-                Text("Thêm")
+
+                ) {
+                Text(if (isEditing) "Sửa" else "Thêm")
             }
         },
         dismissButton = {
@@ -181,26 +207,27 @@ fun SwipeToDismissTaskItem(
     task: Task,
     onClick: () -> Unit,
     onDelete: () -> Unit
-){
+) {
     val dismissState = rememberSwipeToDismissBoxState()
     SwipeToDismissBox(
         state = dismissState,
         enableDismissFromStartToEnd = false,
-        onDismiss = {value ->
-            if (value == SwipeToDismissBoxValue.EndToStart){
+        onDismiss = { value ->
+            if (value == SwipeToDismissBoxValue.EndToStart) {
                 onDelete()
             }
         },
         backgroundContent = {
             Box(
-                modifier = Modifier.fillMaxSize()
+                modifier = Modifier
+                    .fillMaxSize()
                     .background(
                         color = MaterialTheme.colorScheme.errorContainer,
                         shape = MaterialTheme.shapes.medium
                     )
                     .padding(horizontal = 20.dp),
                 contentAlignment = Alignment.CenterEnd
-            ){
+            ) {
                 Icon(
                     imageVector = Icons.Default.Delete,
                     contentDescription = "Delete",
@@ -212,8 +239,12 @@ fun SwipeToDismissTaskItem(
 }
 
 @Composable
-fun TaskCard(task: Task,onClick: () -> Unit) {
-    Card(modifier = Modifier.fillMaxWidth().clickable(onClick = onClick)) {
+fun TaskCard(task: Task, onClick: () -> Unit) {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(onClick = onClick)
+    ) {
         Row(
             modifier = Modifier.padding(12.dp),
             verticalAlignment = Alignment.CenterVertically
