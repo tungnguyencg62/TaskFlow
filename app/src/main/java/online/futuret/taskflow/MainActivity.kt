@@ -7,19 +7,24 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Info
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
@@ -27,12 +32,15 @@ import androidx.compose.material3.Checkbox
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
+
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SwipeToDismissBox
 import androidx.compose.material3.SwipeToDismissBoxValue
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextField
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.rememberSwipeToDismissBoxState
 import androidx.compose.runtime.Composable
@@ -43,12 +51,18 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextDecoration
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavController
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.rememberNavController
 import online.futuret.taskflow.data.local.AppDatabase
 import online.futuret.taskflow.data.repository.TaskRepository
 import online.futuret.taskflow.model.Task
+import online.futuret.taskflow.ui.navigation.Routes
 import online.futuret.taskflow.ui.theme.TaskFlowTheme
 import online.futuret.taskflow.ui.viewmodel.TaskViewModel
 
@@ -63,11 +77,19 @@ class MainActivity : ComponentActivity() {
         setContent {
             TaskFlowTheme {
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-                    TaskFlowHomeScreen(
+                    val navController = rememberNavController()
 
-                        modifier = Modifier.padding(innerPadding),
-                        viewModelFactory = viewModelFactory
-                    )
+                    NavHost(
+                        navController = navController,
+                        startDestination = Routes.TASK_LIST
+                    ) {
+                        composable(Routes.TASK_LIST) {
+                            TaskListScreen(modifier = Modifier.padding(innerPadding),viewModelFactory = viewModelFactory, navController = navController)
+                        }
+                        composable(Routes.TASK_DETAIL) {
+                            TaskDetailScreen(navController = navController)
+                        }
+                    }
                 }
             }
         }
@@ -76,7 +98,9 @@ class MainActivity : ComponentActivity() {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun TaskFlowHomeScreen(modifier: Modifier = Modifier, viewModelFactory: TaskViewModel.Factory) {
+fun TaskListScreen(modifier: Modifier = Modifier, viewModelFactory: TaskViewModel.Factory,
+                   navController: NavController
+) {
     val viewModel: TaskViewModel = viewModel(factory = viewModelFactory)
     val tasks by viewModel.tasks.collectAsStateWithLifecycle()
 
@@ -105,28 +129,28 @@ fun TaskFlowHomeScreen(modifier: Modifier = Modifier, viewModelFactory: TaskView
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             items(items = tasks, key = { it.id }) { task ->
-                SwipeToDismissTaskItem(
-                    task = task,
-                    onClick = { editingTask = task },
+                SwipeToDismissTaskItem(task = task,
+                    onClick = {editingTask = task},
                     onDelete = {
-                        viewModel.deleteTask(task)
-                    })
+                    viewModel.deleteTask(task)
+                },
+                    onOpenDetail = { navController.navigate(Routes.TASK_DETAIL) })
             }
         }
 
     }
-    editingTask?.let { task ->
+    editingTask?.let {task ->
         TaskFormDialog(
             initialTitle = task.title,
             isEditing = task.id != 0,
             onDismiss = { editingTask = null },
             onConfirm = { newTitle ->
-                if (task.id == 0) {
-                    viewModel.addTask(newTitle)
-                } else {
-                    viewModel.updateTask(task.copy(title = newTitle))
-                }
-                editingTask = null
+               if(task.id == 0){
+                   viewModel.addTask(newTitle)
+               }else {
+                   viewModel.updateTask(task.copy(title = newTitle))
+               }
+               editingTask = null
             }
         )
     }
@@ -137,29 +161,8 @@ fun TaskFormDialog(
     initialTitle: String,
     isEditing: Boolean,
     onDismiss: () -> Unit,
-    onConfirm: (String) -> Unit
-) {
+    onConfirm: (String) -> Unit) {
     var title by remember { mutableStateOf(initialTitle) }
-    var errorMessage by remember { mutableStateOf<String?>(null) }
-
-    fun validate(): Boolean {
-        return when {
-            title.isBlank() -> {
-                errorMessage = "Tên task không được để trống"
-                false
-            }
-
-            title.length > 100 -> {
-                errorMessage = "Tên task không được quá 100 ký tự"
-                false
-            }
-
-            else -> {
-                errorMessage = null
-                true
-            }
-        }
-    }
 
     AlertDialog(
         onDismissRequest = onDismiss,
@@ -167,30 +170,20 @@ fun TaskFormDialog(
         text = {
             OutlinedTextField(
                 value = title,
-                onValueChange = {
-                    title = it
-                    if (errorMessage != null) errorMessage = null
-                },
-                label = { Text("Tên task") },
-                singleLine = true,
-                isError = errorMessage != null,
-                supportingText = {
-                    errorMessage?.let {
-                        Text(it, color = MaterialTheme.colorScheme.error)
-                    }
-                }
+                onValueChange = { title = it },
+                label = { Text("Tên task") }
             )
         },
         confirmButton = {
             Button(
                 onClick = {
-                    if (validate()) {
-                        onConfirm(title.trim())
+                    if (title.isNotBlank()) {
+                        onConfirm(title)
                     }
                 },
-
-                ) {
-                Text(if (isEditing) "Sửa" else "Thêm")
+                enabled = title.isNotBlank()
+            ) {
+                Text("Thêm")
             }
         },
         dismissButton = {
@@ -206,28 +199,28 @@ fun TaskFormDialog(
 fun SwipeToDismissTaskItem(
     task: Task,
     onClick: () -> Unit,
-    onDelete: () -> Unit
-) {
+    onDelete: () -> Unit,
+    onOpenDetail: () -> Unit
+){
     val dismissState = rememberSwipeToDismissBoxState()
     SwipeToDismissBox(
         state = dismissState,
         enableDismissFromStartToEnd = false,
-        onDismiss = { value ->
-            if (value == SwipeToDismissBoxValue.EndToStart) {
+        onDismiss = {value ->
+            if (value == SwipeToDismissBoxValue.EndToStart){
                 onDelete()
             }
         },
         backgroundContent = {
             Box(
-                modifier = Modifier
-                    .fillMaxSize()
+                modifier = Modifier.fillMaxSize()
                     .background(
                         color = MaterialTheme.colorScheme.errorContainer,
                         shape = MaterialTheme.shapes.medium
                     )
                     .padding(horizontal = 20.dp),
                 contentAlignment = Alignment.CenterEnd
-            ) {
+            ){
                 Icon(
                     imageVector = Icons.Default.Delete,
                     contentDescription = "Delete",
@@ -235,16 +228,7 @@ fun SwipeToDismissTaskItem(
                 )
             }
         }
-    ) { TaskCard(task = task, onClick = onClick) }
-}
-
-@Composable
-fun TaskCard(task: Task, onClick: () -> Unit) {
-    Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable(onClick = onClick)
-    ) {
+    ) { Card(modifier = Modifier.fillMaxWidth().clickable { onClick() }) {
         Row(
             modifier = Modifier.padding(12.dp),
             verticalAlignment = Alignment.CenterVertically
@@ -253,12 +237,59 @@ fun TaskCard(task: Task, onClick: () -> Unit) {
             Spacer(modifier = Modifier.width(8.dp))
             Text(
                 text = task.title,
+                modifier = Modifier.weight(1f),
                 style = MaterialTheme.typography.bodyLarge,
                 textDecoration = if (task.isDone) TextDecoration.LineThrough else TextDecoration.None
             )
+            IconButton(onClick = onOpenDetail) {
+                Icon(Icons.Default.Info, contentDescription = "Xem chi tiết")
+            }
+        }
+    }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun TaskDetailScreen(navController: NavController) {
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                title = { Text("Chi tiết Task") },
+                navigationIcon = {
+                    IconButton(onClick = { navController.popBackStack() }) {
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Quay lại")
+                    }
+                }
+            )
+        }
+    ) { innerPadding ->
+        Box(
+            modifier = Modifier.fillMaxSize().padding(innerPadding),
+            contentAlignment = Alignment.Center
+        ) {
+            Text("Đây là màn hình chi tiết Task (demo — chưa có dữ liệu thật)")
         }
     }
 }
+
+//@Composable
+//fun TaskCard(task: Task,onClick: () -> Unit) {
+//    Card(modifier = Modifier.fillMaxWidth().clickable(onClick = onClick)) {
+//        Row(
+//            modifier = Modifier.padding(12.dp),
+//            verticalAlignment = Alignment.CenterVertically
+//        ) {
+//            Checkbox(checked = task.isDone, onCheckedChange = null, enabled = false)
+//            Spacer(modifier = Modifier.width(8.dp))
+//            Text(
+//                text = task.title,
+//                style = MaterialTheme.typography.bodyLarge,
+//                textDecoration = if (task.isDone) TextDecoration.LineThrough else TextDecoration.None
+//            )
+//        }
+//    }
+//}
 
 //@Preview(showBackground = true)
 //@Composable
