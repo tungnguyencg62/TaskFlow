@@ -4,7 +4,7 @@ import online.futuret.taskflow.data.local.dao.TaskDao
 import online.futuret.taskflow.data.local.entity.TaskEntity
 
 class TaskRepository(private val taskDao: TaskDao) {
-    fun getAllTasks() = taskDao.getAll()
+    fun getTasksByProject(projectId: Int) = taskDao.getByProject(projectId)
 
     suspend fun insertTask(task: TaskEntity) = taskDao.insert(task)
 

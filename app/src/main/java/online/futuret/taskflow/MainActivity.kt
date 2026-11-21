@@ -59,6 +59,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.lifecycle.viewmodel.viewModelFactory
 import androidx.navigation.NavController
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
@@ -66,10 +67,15 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import online.futuret.taskflow.data.local.AppDatabase
+import online.futuret.taskflow.data.repository.ProjectRepository
 import online.futuret.taskflow.data.repository.TaskRepository
 import online.futuret.taskflow.model.Task
 import online.futuret.taskflow.ui.navigation.Routes
+import online.futuret.taskflow.ui.screen.ProjectListScreen
+import online.futuret.taskflow.ui.screen.TaskDetailScreen
+import online.futuret.taskflow.ui.screen.TaskListScreen
 import online.futuret.taskflow.ui.theme.TaskFlowTheme
+import online.futuret.taskflow.ui.viewmodel.ProjectViewModel
 import online.futuret.taskflow.ui.viewmodel.TaskViewModel
 
 class MainActivity : ComponentActivity() {
@@ -77,8 +83,9 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         // Khởi tạo tầng dữ liệu — tạm thời đặt ở đây, sẽ chuyển ra Application class sau
         val database = AppDatabase.getInstance(applicationContext)
-        val repository = TaskRepository(database.taskDao())
-        val viewModelFactory = TaskViewModel.Factory(repository)
+        val taskRepository = TaskRepository(database.taskDao())
+        val projectRepository = ProjectRepository(database.projectDao())
+        val projectViewModelFactory = ProjectViewModel.Factory(projectRepository)
         enableEdgeToEdge()
         setContent {
             TaskFlowTheme {
@@ -87,21 +94,31 @@ class MainActivity : ComponentActivity() {
 
                     NavHost(
                         navController = navController,
-                        startDestination = Routes.TASK_LIST
+                        startDestination = Routes.PROJECT_LIST
                     ) {
-                        composable(Routes.TASK_LIST) {
-                            TaskListScreen(modifier = Modifier.padding(innerPadding),viewModelFactory = viewModelFactory, navController = navController)
+                        composable(Routes.PROJECT_LIST){
+                            ProjectListScreen(viewModelFactory = projectViewModelFactory,navController = navController)
                         }
-                        composable(Routes.TASK_DETAIL_ROUTE,
-                            arguments = listOf(navArgument(Routes.TASK_DETAIL_ARG_ID) {
+                        composable(Routes.TASK_LIST_ROUTE,
+                            arguments = listOf(navArgument(Routes.TASK_LIST_ARG_PROJECT_ID){
                                 type = NavType.IntType
-                            })
-                        ) {backStackEntry ->
-                            val taskId = backStackEntry.arguments?.getInt(Routes.TASK_DETAIL_ARG_ID) ?: 0
-                            TaskDetailScreen(taskId = taskId,
-                                viewModelFactory = viewModelFactory,
+                            })) {backStackEntry ->
+                            val projectId = backStackEntry.arguments?.getInt(Routes.TASK_LIST_ARG_PROJECT_ID) ?: 0
+                            TaskListScreen(modifier = Modifier.padding(innerPadding),
+                                projectId = projectId,
+                                viewModelFactory = TaskViewModel.Factory(taskRepository,projectId),
                                 navController = navController)
                         }
+//                        composable(Routes.TASK_DETAIL_ROUTE,
+//                            arguments = listOf(navArgument(Routes.TASK_DETAIL_ARG_ID) {
+//                                type = NavType.IntType
+//                            })
+//                        ) {backStackEntry ->
+//                            val taskId = backStackEntry.arguments?.getInt(Routes.TASK_DETAIL_ARG_ID) ?: 0
+//                            TaskDetailScreen(taskId = taskId,
+//                                viewModelFactory = viewModelFactory,
+//                                navController = navController)
+//                        }
                     }
                 }
             }
@@ -109,201 +126,9 @@ class MainActivity : ComponentActivity() {
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun TaskListScreen(modifier: Modifier = Modifier, viewModelFactory: TaskViewModel.Factory,
-                   navController: NavController
-) {
-    val viewModel: TaskViewModel = viewModel(factory = viewModelFactory)
-    val tasks by viewModel.tasks.collectAsStateWithLifecycle()
-
-    var editingTask by remember { mutableStateOf<Task?>(null) }
-//    var showAddDialog by remember { mutableStateOf(false) }
-
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text("TaskFlow") }
-            )
-        },
-        floatingActionButton = {
-            FloatingActionButton(onClick = {
-                editingTask = Task(id = 0, title = "", description = "", isDone = false)
-            }) {
-                Icon(imageVector = Icons.Default.Add, contentDescription = "Thêm task")
-            }
-        }
-    ) { innerPadding ->
-        LazyColumn(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(innerPadding)
-                .padding(horizontal = 16.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp)
-        ) {
-            items(items = tasks, key = { it.id }) { task ->
-                SwipeToDismissTaskItem(task = task,
-                    onClick = {editingTask = task},
-                    onDelete = {
-                    viewModel.deleteTask(task)
-                },
-                    onOpenDetail = { navController.navigate(Routes.taskDetailRoute(task.id)) })
-            }
-        }
-
-    }
-    editingTask?.let {task ->
-        TaskFormDialog(
-            initialTitle = task.title,
-            isEditing = task.id != 0,
-            onDismiss = { editingTask = null },
-            onConfirm = { newTitle ->
-               if(task.id == 0){
-                   viewModel.addTask(newTitle)
-               }else {
-                   viewModel.updateTask(task.copy(title = newTitle))
-               }
-               editingTask = null
-            }
-        )
-    }
-}
-
-@Composable
-fun TaskFormDialog(
-    initialTitle: String,
-    isEditing: Boolean,
-    onDismiss: () -> Unit,
-    onConfirm: (String) -> Unit) {
-    var title by remember { mutableStateOf(initialTitle) }
-
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        title = { Text(if (isEditing) "Sửa task" else "Task mới") },
-        text = {
-            OutlinedTextField(
-                value = title,
-                onValueChange = { title = it },
-                label = { Text("Tên task") }
-            )
-        },
-        confirmButton = {
-            Button(
-                onClick = {
-                    if (title.isNotBlank()) {
-                        onConfirm(title)
-                    }
-                },
-                enabled = title.isNotBlank()
-            ) {
-                Text("Thêm")
-            }
-        },
-        dismissButton = {
-            Button(onClick = onDismiss) {
-                Text("Hủy")
-            }
-        }
-    )
-}
 
 
-@Composable
-fun SwipeToDismissTaskItem(
-    task: Task,
-    onClick: () -> Unit,
-    onDelete: () -> Unit,
-    onOpenDetail: () -> Unit
-){
-    val dismissState = rememberSwipeToDismissBoxState()
-    SwipeToDismissBox(
-        state = dismissState,
-        enableDismissFromStartToEnd = false,
-        onDismiss = {value ->
-            if (value == SwipeToDismissBoxValue.EndToStart){
-                onDelete()
-            }
-        },
-        backgroundContent = {
-            Box(
-                modifier = Modifier.fillMaxSize()
-                    .background(
-                        color = MaterialTheme.colorScheme.errorContainer,
-                        shape = MaterialTheme.shapes.medium
-                    )
-                    .padding(horizontal = 20.dp),
-                contentAlignment = Alignment.CenterEnd
-            ){
-                Icon(
-                    imageVector = Icons.Default.Delete,
-                    contentDescription = "Delete",
-                    tint = MaterialTheme.colorScheme.onErrorContainer
-                )
-            }
-        }
-    ) { Card(modifier = Modifier.fillMaxWidth().clickable { onClick() }) {
-        Row(
-            modifier = Modifier.padding(12.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Checkbox(checked = task.isDone, onCheckedChange = null, enabled = false)
-            Spacer(modifier = Modifier.width(8.dp))
-            Text(
-                text = task.title,
-                modifier = Modifier.weight(1f),
-                style = MaterialTheme.typography.bodyLarge,
-                textDecoration = if (task.isDone) TextDecoration.LineThrough else TextDecoration.None
-            )
-            IconButton(onClick = onOpenDetail) {
-                Icon(Icons.Default.Info, contentDescription = "Xem chi tiết")
-            }
-        }
-    }
-    }
-}
 
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun TaskDetailScreen(
-    taskId: Int,
-    viewModelFactory: TaskViewModel.Factory,
-    navController: NavController) {
-
-    val viewModel: TaskViewModel = viewModel(factory = viewModelFactory)
-    val tasks by viewModel.tasks.collectAsStateWithLifecycle()
-    val task =  tasks.firstOrNull { it.id == taskId }
-
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text("Chi tiết Task") },
-                navigationIcon = {
-                    IconButton(onClick = { navController.popBackStack() }) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Quay lại")
-                    }
-                }
-            )
-        }
-    ) { innerPadding ->
-        Box(
-            modifier = Modifier.fillMaxSize().padding(innerPadding).padding(16.dp),
-            contentAlignment = Alignment.Center
-        ) {
-            if (task == null){
-                Text("Không tìm thấy Task (có thể đã bị xóa)")
-            }else{
-                Column {
-                    Text("ID: ${task.id}", style = MaterialTheme.typography.labelMedium)
-                    Spacer(modifier = Modifier.height(8.dp))
-                    Text(task.title, style = MaterialTheme.typography.headlineSmall)
-                    Spacer(modifier = Modifier.height(8.dp))
-                    Text(if (task.isDone) "Trạng thái: Đã xong" else "Trạng thái: Chưa xong")
-                }
-            }
-
-        }
-    }
-}
 
 //@Composable
 //fun TaskCard(task: Task,onClick: () -> Unit) {

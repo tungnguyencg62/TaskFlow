@@ -12,9 +12,10 @@ import online.futuret.taskflow.data.repository.TaskRepository
 import online.futuret.taskflow.model.Task
 
 class TaskViewModel(
-    private val repository: TaskRepository
+    private val repository: TaskRepository,
+    private val projectId: Int
 ): ViewModel() {
-    val tasks = repository.getAllTasks()
+    val tasks = repository.getTasksByProject(projectId)
         .map { entities -> entities.map { it.toTask() } }
         .stateIn(
             scope = viewModelScope,
@@ -23,7 +24,7 @@ class TaskViewModel(
         )
     fun addTask(title: String){
         viewModelScope.launch {
-            repository.insertTask(TaskEntity(projectId = 1,title = title))
+            repository.insertTask(TaskEntity(projectId = projectId,title = title))
         }
     }
 
@@ -39,10 +40,11 @@ class TaskViewModel(
         }
     }
     // Factory để tạo ViewModel kèm Repository (vì chưa dùng Hilt)
-    class Factory(private val repository: TaskRepository): ViewModelProvider.Factory{
+    class Factory(private val repository: TaskRepository,
+                  private val projectId: Int): ViewModelProvider.Factory{
         @Suppress("UNCHECKED_CAST")
         override fun <T : ViewModel> create(modelClass: Class<T>): T {
-            return TaskViewModel(repository) as T
+            return TaskViewModel(repository,projectId) as T
         }
     }
 }
