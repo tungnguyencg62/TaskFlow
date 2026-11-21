@@ -1,6 +1,7 @@
 package online.futuret.taskflow
 
 
+import android.R.attr.type
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -10,11 +11,13 @@ import androidx.compose.foundation.clickable
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
@@ -53,12 +56,15 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
 import online.futuret.taskflow.data.local.AppDatabase
 import online.futuret.taskflow.data.repository.TaskRepository
 import online.futuret.taskflow.model.Task
@@ -86,8 +92,15 @@ class MainActivity : ComponentActivity() {
                         composable(Routes.TASK_LIST) {
                             TaskListScreen(modifier = Modifier.padding(innerPadding),viewModelFactory = viewModelFactory, navController = navController)
                         }
-                        composable(Routes.TASK_DETAIL) {
-                            TaskDetailScreen(navController = navController)
+                        composable(Routes.TASK_DETAIL_ROUTE,
+                            arguments = listOf(navArgument(Routes.TASK_DETAIL_ARG_ID) {
+                                type = NavType.IntType
+                            })
+                        ) {backStackEntry ->
+                            val taskId = backStackEntry.arguments?.getInt(Routes.TASK_DETAIL_ARG_ID) ?: 0
+                            TaskDetailScreen(taskId = taskId,
+                                viewModelFactory = viewModelFactory,
+                                navController = navController)
                         }
                     }
                 }
@@ -134,7 +147,7 @@ fun TaskListScreen(modifier: Modifier = Modifier, viewModelFactory: TaskViewMode
                     onDelete = {
                     viewModel.deleteTask(task)
                 },
-                    onOpenDetail = { navController.navigate(Routes.TASK_DETAIL) })
+                    onOpenDetail = { navController.navigate(Routes.taskDetailRoute(task.id)) })
             }
         }
 
@@ -251,7 +264,15 @@ fun SwipeToDismissTaskItem(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun TaskDetailScreen(navController: NavController) {
+fun TaskDetailScreen(
+    taskId: Int,
+    viewModelFactory: TaskViewModel.Factory,
+    navController: NavController) {
+
+    val viewModel: TaskViewModel = viewModel(factory = viewModelFactory)
+    val tasks by viewModel.tasks.collectAsStateWithLifecycle()
+    val task =  tasks.firstOrNull { it.id == taskId }
+
     Scaffold(
         topBar = {
             TopAppBar(
@@ -265,10 +286,21 @@ fun TaskDetailScreen(navController: NavController) {
         }
     ) { innerPadding ->
         Box(
-            modifier = Modifier.fillMaxSize().padding(innerPadding),
+            modifier = Modifier.fillMaxSize().padding(innerPadding).padding(16.dp),
             contentAlignment = Alignment.Center
         ) {
-            Text("Đây là màn hình chi tiết Task (demo — chưa có dữ liệu thật)")
+            if (task == null){
+                Text("Không tìm thấy Task (có thể đã bị xóa)")
+            }else{
+                Column {
+                    Text("ID: ${task.id}", style = MaterialTheme.typography.labelMedium)
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Text(task.title, style = MaterialTheme.typography.headlineSmall)
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Text(if (task.isDone) "Trạng thái: Đã xong" else "Trạng thái: Chưa xong")
+                }
+            }
+
         }
     }
 }
