@@ -6,11 +6,12 @@ import androidx.room.Room
 import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
 import online.futuret.taskflow.data.local.dao.TaskDao
+import online.futuret.taskflow.data.local.entity.ProjectEntity
 import online.futuret.taskflow.data.local.entity.TaskEntity
 
 
 @Database(
-    entities = [TaskEntity::class],
+    entities = [TaskEntity::class, ProjectEntity::class],
     version = 1,
     exportSchema = false
 )
