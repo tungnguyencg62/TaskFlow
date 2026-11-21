@@ -23,7 +23,7 @@ class TaskViewModel(
         )
     fun addTask(title: String){
         viewModelScope.launch {
-            repository.insertTask(TaskEntity(title = title))
+            repository.insertTask(TaskEntity(projectId = 1,title = title))
         }
     }
 
@@ -50,12 +50,14 @@ class TaskViewModel(
 // Hàm mapping: TaskEntity (data layer) -> Task (UI layer)
 private fun TaskEntity.toTask() = Task(
     id = this.id,
+    projectId = this.projectId,
     title = this.title,
     description = this.description,
     isDone = this.isDone
 )
 private fun Task.toEntity() = TaskEntity(
     id = this.id,
+    projectId = this.projectId,
     title = this.title,
     description = this.description,
     isDone = this.isDone
