@@ -8,14 +8,16 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import online.futuret.taskflow.data.local.entity.ProjectEntity
+import online.futuret.taskflow.data.local.relation.ProjectWithTasks
 import online.futuret.taskflow.data.repository.ProjectRepository
 import online.futuret.taskflow.model.Project
+import online.futuret.taskflow.model.ProjectUi
 
 class ProjectViewModel(
     private val repository: ProjectRepository
 ): ViewModel() {
-    val projects = repository.getAllProjects()
-        .map { entities -> entities.map { it.toProject() } }
+    val projects = repository.getAllProjectsWithTasks()
+        .map { entities -> entities.map { it.toProjectUi() } }
         .stateIn(
             scope = viewModelScope,
             initialValue = emptyList(),
@@ -52,3 +54,10 @@ private fun ProjectEntity.toProject(): Project =
 
 private fun Project.toEntity(): ProjectEntity =
     ProjectEntity(id = this.id, name = this.name, description = this.description)
+
+private fun ProjectWithTasks.toProjectUi(): ProjectUi = ProjectUi(
+    id = project.id,
+    name = project.name,
+    taskCount = tasks.size,
+    doneCount = tasks.count { it.isDone }
+)

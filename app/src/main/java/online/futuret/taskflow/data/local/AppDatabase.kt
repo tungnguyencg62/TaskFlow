@@ -7,12 +7,17 @@ import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
 import online.futuret.taskflow.data.local.dao.ProjectDao
 import online.futuret.taskflow.data.local.dao.TaskDao
+import online.futuret.taskflow.data.local.entity.BoardEntity
+import online.futuret.taskflow.data.local.entity.ColumnEntity
 import online.futuret.taskflow.data.local.entity.ProjectEntity
 import online.futuret.taskflow.data.local.entity.TaskEntity
 
 
 @Database(
-    entities = [TaskEntity::class, ProjectEntity::class],
+    entities = [TaskEntity::class,
+                ProjectEntity::class,
+               BoardEntity::class,
+               ColumnEntity::class],
     version = 1,
     exportSchema = false
 )

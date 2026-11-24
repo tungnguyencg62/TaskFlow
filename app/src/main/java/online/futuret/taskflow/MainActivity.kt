@@ -76,6 +76,7 @@ import online.futuret.taskflow.ui.screen.TaskDetailScreen
 import online.futuret.taskflow.ui.screen.TaskListScreen
 import online.futuret.taskflow.ui.theme.TaskFlowTheme
 import online.futuret.taskflow.ui.viewmodel.ProjectViewModel
+import online.futuret.taskflow.ui.viewmodel.TaskDetailViewModel
 import online.futuret.taskflow.ui.viewmodel.TaskViewModel
 
 class MainActivity : ComponentActivity() {
@@ -109,16 +110,16 @@ class MainActivity : ComponentActivity() {
                                 viewModelFactory = TaskViewModel.Factory(taskRepository,projectId),
                                 navController = navController)
                         }
-//                        composable(Routes.TASK_DETAIL_ROUTE,
-//                            arguments = listOf(navArgument(Routes.TASK_DETAIL_ARG_ID) {
-//                                type = NavType.IntType
-//                            })
-//                        ) {backStackEntry ->
-//                            val taskId = backStackEntry.arguments?.getInt(Routes.TASK_DETAIL_ARG_ID) ?: 0
-//                            TaskDetailScreen(taskId = taskId,
-//                                viewModelFactory = viewModelFactory,
-//                                navController = navController)
-//                        }
+                        composable(Routes.TASK_DETAIL_ROUTE,
+                            arguments = listOf(navArgument(Routes.TASK_DETAIL_ARG_ID) {
+                                type = NavType.IntType
+                            })
+                        ) {backStackEntry ->
+                            val taskId = backStackEntry.arguments?.getInt(Routes.TASK_DETAIL_ARG_ID) ?: 0
+                            TaskDetailScreen(
+                                viewModelFactory = TaskDetailViewModel.Factory(taskRepository,taskId),
+                                navController = navController)
+                        }
                     }
                 }
             }

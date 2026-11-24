@@ -23,18 +23,17 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
+import online.futuret.taskflow.ui.viewmodel.TaskDetailViewModel
 import online.futuret.taskflow.ui.viewmodel.TaskViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TaskDetailScreen(
-    taskId: Int,
-    viewModelFactory: TaskViewModel.Factory,
+    viewModelFactory: TaskDetailViewModel.Factory,
     navController: NavController) {
 
-    val viewModel: TaskViewModel = viewModel(factory = viewModelFactory)
-    val tasks by viewModel.tasks.collectAsStateWithLifecycle()
-    val task =  tasks.firstOrNull { it.id == taskId }
+    val viewModel: TaskDetailViewModel = viewModel(factory = viewModelFactory)
+    val task by  viewModel.task.collectAsStateWithLifecycle()
 
     Scaffold(
         topBar = {
@@ -52,15 +51,16 @@ fun TaskDetailScreen(
             modifier = Modifier.fillMaxSize().padding(innerPadding).padding(16.dp),
             contentAlignment = Alignment.Center
         ) {
-            if (task == null){
+            val currentTask = task
+            if (currentTask == null){
                 Text("Không tìm thấy Task (có thể đã bị xóa)")
             }else{
                 Column {
-                    Text("ID: ${task.id}", style = MaterialTheme.typography.labelMedium)
+                    Text("ID: ${currentTask.id}", style = MaterialTheme.typography.labelMedium)
                     Spacer(modifier = Modifier.height(8.dp))
-                    Text(task.title, style = MaterialTheme.typography.headlineSmall)
+                    Text(currentTask.title, style = MaterialTheme.typography.headlineSmall)
                     Spacer(modifier = Modifier.height(8.dp))
-                    Text(if (task.isDone) "Trạng thái: Đã xong" else "Trạng thái: Chưa xong")
+                    Text(if (currentTask.isDone) "Trạng thái: Đã xong" else "Trạng thái: Chưa xong")
                 }
             }
 

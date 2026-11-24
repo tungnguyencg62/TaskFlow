@@ -3,6 +3,7 @@ package online.futuret.taskflow.data.local.dao
 import androidx.room.*
 import kotlinx.coroutines.flow.Flow
 import online.futuret.taskflow.data.local.entity.ProjectEntity
+import online.futuret.taskflow.data.local.relation.ProjectWithTasks
 
 @Dao
 interface ProjectDao {
@@ -20,4 +21,8 @@ interface ProjectDao {
 
     @Query("SELECT * FROM projects WHERE id = :projectId")
     suspend fun getById(projectId: Int): ProjectEntity?
+
+    @Transaction
+    @Query("SELECT * FROM projects ORDER BY createdAt DESC")
+    fun getAllWithTasks(): Flow<List<ProjectWithTasks>>
 }

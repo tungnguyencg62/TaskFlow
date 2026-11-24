@@ -2,8 +2,11 @@ package online.futuret.taskflow.ui.screen
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -64,11 +67,15 @@ fun ProjectListScreen(
                 Card(modifier = Modifier.fillMaxWidth().clickable(
                     onClick = {navController.navigate(Routes.taskListRoute(project.id))}
                 )){
-                    Text(
-                        text = project.name,
-                        modifier = Modifier.padding(16.dp),
-                        style = MaterialTheme.typography.titleMedium
-                    )
+                    Column(modifier = Modifier.padding(16.dp)) {
+                        Text(project.name, style = MaterialTheme.typography.titleMedium)
+                        Spacer(modifier = Modifier.height(4.dp))
+                        Text(
+                            "${project.doneCount}/${project.taskCount} task hoàn thành",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
                 }
             }
         }

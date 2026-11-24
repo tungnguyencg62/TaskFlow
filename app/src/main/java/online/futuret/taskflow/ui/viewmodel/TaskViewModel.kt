@@ -10,6 +10,8 @@ import kotlinx.coroutines.launch
 import online.futuret.taskflow.data.local.entity.TaskEntity
 import online.futuret.taskflow.data.repository.TaskRepository
 import online.futuret.taskflow.model.Task
+import online.futuret.taskflow.data.mapper.toEntity
+import online.futuret.taskflow.data.mapper.toTask
 
 class TaskViewModel(
     private val repository: TaskRepository,
@@ -49,18 +51,3 @@ class TaskViewModel(
     }
 }
 
-// Hàm mapping: TaskEntity (data layer) -> Task (UI layer)
-private fun TaskEntity.toTask() = Task(
-    id = this.id,
-    projectId = this.projectId,
-    title = this.title,
-    description = this.description,
-    isDone = this.isDone
-)
-private fun Task.toEntity() = TaskEntity(
-    id = this.id,
-    projectId = this.projectId,
-    title = this.title,
-    description = this.description,
-    isDone = this.isDone
-)

@@ -25,4 +25,7 @@ interface TaskDao {
 
     @Query("SELECT * FROM tasks WHERE projectId = :projectId ORDER BY id DESC")
     fun getByProject(projectId: Int): Flow<List<TaskEntity>>
+
+    @Query("SELECT * FROM tasks WHERE id = :taskId")
+    suspend fun getTaskById(taskId: Int): TaskEntity?
 }
