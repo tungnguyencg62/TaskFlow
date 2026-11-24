@@ -15,9 +15,9 @@ import online.futuret.taskflow.data.mapper.toTask
 
 class TaskViewModel(
     private val repository: TaskRepository,
-    private val projectId: Int
+    private val columnId: Int
 ): ViewModel() {
-    val tasks = repository.getTasksByProject(projectId)
+    val tasks = repository.getTasksByColumn(columnId)
         .map { entities -> entities.map { it.toTask() } }
         .stateIn(
             scope = viewModelScope,
@@ -26,7 +26,8 @@ class TaskViewModel(
         )
     fun addTask(title: String){
         viewModelScope.launch {
-            repository.insertTask(TaskEntity(projectId = projectId,title = title))
+            val nextPosition = repository.getNextPosition(columnId)
+            repository.insertTask(TaskEntity(columnId = columnId, position = nextPosition,title = title))
         }
     }
 

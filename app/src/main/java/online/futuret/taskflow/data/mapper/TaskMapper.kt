@@ -8,14 +8,16 @@ import online.futuret.taskflow.model.Task
 // Hàm mapping: TaskEntity (data layer) -> Task (UI layer)
  fun TaskEntity.toTask() = Task(
     id = this.id,
-    projectId = this.projectId,
+    columnId = this.columnId,
+   position = this.position,
     title = this.title,
     description = this.description,
     isDone = this.isDone
 )
  fun Task.toEntity() = TaskEntity(
     id = this.id,
-    projectId = this.projectId,
+    columnId = this.columnId,
+    position = this.position,
     title = this.title,
     description = this.description,
     isDone = this.isDone

@@ -23,9 +23,25 @@ interface TaskDao {
 //    @Query("SELECT * FROM tasks ORDER BY id DESC")
 //    fun getAll(): Flow<List<TaskEntity>>
 
-    @Query("SELECT * FROM tasks WHERE projectId = :projectId ORDER BY id DESC")
-    fun getByProject(projectId: Int): Flow<List<TaskEntity>>
+    @Query("SELECT * FROM tasks WHERE columnId = :columnId ORDER BY position ASC")
+    fun getByColumn(columnId: Int): Flow<List<TaskEntity>>
 
     @Query("SELECT * FROM tasks WHERE id = :taskId")
     suspend fun getTaskById(taskId: Int): TaskEntity?
+
+    @Query("SELECT COALESCE(MAX(position), -1) FROM tasks WHERE columnId = :columnId")
+    suspend fun getMaxPosition(columnId: Int):Int
 }
+
+
+
+
+
+
+
+
+
+
+
+
+

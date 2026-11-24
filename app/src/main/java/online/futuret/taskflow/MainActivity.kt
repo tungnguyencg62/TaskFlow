@@ -100,16 +100,16 @@ class MainActivity : ComponentActivity() {
                         composable(Routes.PROJECT_LIST){
                             ProjectListScreen(viewModelFactory = projectViewModelFactory,navController = navController)
                         }
-                        composable(Routes.TASK_LIST_ROUTE,
-                            arguments = listOf(navArgument(Routes.TASK_LIST_ARG_PROJECT_ID){
-                                type = NavType.IntType
-                            })) {backStackEntry ->
-                            val projectId = backStackEntry.arguments?.getInt(Routes.TASK_LIST_ARG_PROJECT_ID) ?: 0
-                            TaskListScreen(modifier = Modifier.padding(innerPadding),
-                                projectId = projectId,
-                                viewModelFactory = TaskViewModel.Factory(taskRepository,projectId),
-                                navController = navController)
-                        }
+//                        composable(Routes.TASK_LIST_ROUTE,
+//                            arguments = listOf(navArgument(Routes.TASK_LIST_ARG_PROJECT_ID){
+//                                type = NavType.IntType
+//                            })) {backStackEntry ->
+//                            val projectId = backStackEntry.arguments?.getInt(Routes.TASK_LIST_ARG_PROJECT_ID) ?: 0
+//                            TaskListScreen(modifier = Modifier.padding(innerPadding),
+//                                projectId = projectId,
+//                                viewModelFactory = TaskViewModel.Factory(taskRepository,projectId),
+//                                navController = navController)
+//                        }
                         composable(Routes.TASK_DETAIL_ROUTE,
                             arguments = listOf(navArgument(Routes.TASK_DETAIL_ARG_ID) {
                                 type = NavType.IntType

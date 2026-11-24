@@ -64,9 +64,12 @@ fun ProjectListScreen(
         LazyColumn(modifier = Modifier.fillMaxSize().padding(innerPadding).padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(8.dp)) {
             items(items = projects, key = {it.id}){ project ->
-                Card(modifier = Modifier.fillMaxWidth().clickable(
-                    onClick = {navController.navigate(Routes.taskListRoute(project.id))}
-                )){
+                Card(modifier = Modifier
+                    .fillMaxWidth()
+//                    .clickable(
+//                    onClick = {navController.navigate(Routes.taskListRoute(project.id))}
+//                )
+                ){
                     Column(modifier = Modifier.padding(16.dp)) {
                         Text(project.name, style = MaterialTheme.typography.titleMedium)
                         Spacer(modifier = Modifier.height(4.dp))

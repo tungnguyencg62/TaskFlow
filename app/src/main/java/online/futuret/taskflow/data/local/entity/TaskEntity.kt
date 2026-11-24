@@ -9,19 +9,20 @@ import androidx.room.PrimaryKey
 @Entity(tableName = "tasks",
     foreignKeys = [
         ForeignKey(
-            entity = ProjectEntity::class,
+            entity = ColumnEntity::class,
             parentColumns = ["id"],
-            childColumns = ["projectId"],
+            childColumns = ["columnId"],
             onDelete = ForeignKey.CASCADE
         )
     ],
     indices = [
-        Index(value = ["projectId"])
+        Index(value = ["columnId"])
     ])
 data class TaskEntity(
     @PrimaryKey(autoGenerate = true)
     val id: Int = 0,
-    val projectId: Int,
+    val columnId: Int,
+    val position: Int,
     val title: String,
     val description: String = "",
     val isDone: Boolean = false
