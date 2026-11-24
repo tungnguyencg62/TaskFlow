@@ -5,6 +5,8 @@ import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
+import online.futuret.taskflow.data.local.dao.BoardDao
+import online.futuret.taskflow.data.local.dao.ColumnDao
 import online.futuret.taskflow.data.local.dao.ProjectDao
 import online.futuret.taskflow.data.local.dao.TaskDao
 import online.futuret.taskflow.data.local.entity.BoardEntity
@@ -25,6 +27,10 @@ abstract class AppDatabase: RoomDatabase() {
     abstract fun taskDao(): TaskDao
 
     abstract fun projectDao(): ProjectDao
+
+    abstract fun boardDao(): BoardDao
+
+    abstract fun columnDao(): ColumnDao
 
     companion object {
         @Volatile
