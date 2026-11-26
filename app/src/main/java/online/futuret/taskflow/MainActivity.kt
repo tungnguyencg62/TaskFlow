@@ -20,6 +20,7 @@ import online.futuret.taskflow.data.repository.ProjectRepository
 import online.futuret.taskflow.data.repository.TaskRepository
 import online.futuret.taskflow.ui.navigation.Routes
 import online.futuret.taskflow.ui.screen.BoardScreen
+import online.futuret.taskflow.ui.screen.DragPlaygroundScreen
 import online.futuret.taskflow.ui.screen.ProjectListScreen
 import online.futuret.taskflow.ui.screen.TaskDetailScreen
 import online.futuret.taskflow.ui.theme.TaskFlowTheme
@@ -47,7 +48,7 @@ class MainActivity : ComponentActivity() {
 
                     NavHost(
                         navController = navController,
-                        startDestination = Routes.PROJECT_LIST
+                        startDestination = "drag_playground"
                     ) {
                         composable(Routes.PROJECT_LIST) {
                             ProjectListScreen(
@@ -88,6 +89,9 @@ class MainActivity : ComponentActivity() {
                             TaskDetailScreen(
                                 viewModelFactory = TaskDetailViewModel.Factory(taskRepository,taskId),
                                 navController = navController)
+                        }
+                        composable("drag_playground") {
+                            DragPlaygroundScreen()
                         }
                     }
                 }
