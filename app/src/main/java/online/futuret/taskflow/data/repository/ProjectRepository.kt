@@ -1,12 +1,14 @@
 package online.futuret.taskflow.data.repository
 
+import kotlinx.coroutines.flow.Flow
 import online.futuret.taskflow.data.local.dao.ProjectDao
 import online.futuret.taskflow.data.local.entity.ProjectEntity
+import online.futuret.taskflow.data.local.relation.ProjectTaskCountRow
 
 class ProjectRepository(private val projectDao: ProjectDao) {
     fun getAllProjects() = projectDao.getAll()
+    fun getProjectsWithTaskCounts(): Flow<List<ProjectTaskCountRow>> = projectDao.getProjectsWithTaskCounts()
 
-    fun getAllProjectsWithTasks() = projectDao.getAllWithTasks()
 
     suspend fun insertProject(projectEntity: ProjectEntity) = projectDao.insert(projectEntity)
 

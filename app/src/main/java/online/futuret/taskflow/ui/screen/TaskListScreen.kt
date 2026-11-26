@@ -49,74 +49,74 @@ import online.futuret.taskflow.model.Task
 import online.futuret.taskflow.ui.navigation.Routes
 import online.futuret.taskflow.ui.viewmodel.TaskViewModel
 
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun TaskListScreen(modifier: Modifier = Modifier,
-                   projectId: Int,
-                   viewModelFactory: TaskViewModel.Factory,
-                   navController: NavController
-) {
-    val viewModel: TaskViewModel = viewModel(
-        key = "task_vm_$projectId",
-        factory = viewModelFactory)
-    val tasks by viewModel.tasks.collectAsStateWithLifecycle()
-
-    var editingTask by remember { mutableStateOf<Task?>(null) }
-//    var showAddDialog by remember { mutableStateOf(false) }
-
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text("TaskFlow") },
-                navigationIcon = {
-                    IconButton(onClick = { navController.popBackStack() }) {
-                        Icon(imageVector = Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Quay lại")
-                    }
-                }
-            )
-        },
-        floatingActionButton = {
-            FloatingActionButton(onClick = {
-                editingTask = Task(id = 0, title = "", description = "", isDone = false)
-            }) {
-                Icon(imageVector = Icons.Default.Add, contentDescription = "Thêm task")
-            }
-        }
-    ) { innerPadding ->
-        LazyColumn(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(innerPadding)
-                .padding(horizontal = 16.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp)
-        ) {
-            items(items = tasks, key = { it.id }) { task ->
-                SwipeToDismissTaskItem(task = task,
-                    onClick = {editingTask = task},
-                    onDelete = {
-                        viewModel.deleteTask(task)
-                    },
-                    onOpenDetail = { navController.navigate(Routes.taskDetailRoute(task.id)) })
-            }
-        }
-
-    }
-    editingTask?.let {task ->
-        TaskFormDialog(
-            initialTitle = task.title,
-            isEditing = task.id != 0,
-            onDismiss = { editingTask = null },
-            onConfirm = { newTitle ->
-                if(task.id == 0){
-                    viewModel.addTask(newTitle)
-                }else {
-                    viewModel.updateTask(task.copy(title = newTitle))
-                }
-                editingTask = null
-            }
-        )
-    }
-}
+//@OptIn(ExperimentalMaterial3Api::class)
+//@Composable
+//fun TaskListScreen(modifier: Modifier = Modifier,
+//                   projectId: Int,
+//                   viewModelFactory: TaskViewModel.Factory,
+//                   navController: NavController
+//) {
+//    val viewModel: TaskViewModel = viewModel(
+//        key = "task_vm_$projectId",
+//        factory = viewModelFactory)
+//    val tasks by viewModel.tasks.collectAsStateWithLifecycle()
+//
+//    var editingTask by remember { mutableStateOf<Task?>(null) }
+////    var showAddDialog by remember { mutableStateOf(false) }
+//
+//    Scaffold(
+//        topBar = {
+//            TopAppBar(
+//                title = { Text("TaskFlow") },
+//                navigationIcon = {
+//                    IconButton(onClick = { navController.popBackStack() }) {
+//                        Icon(imageVector = Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Quay lại")
+//                    }
+//                }
+//            )
+//        },
+//        floatingActionButton = {
+//            FloatingActionButton(onClick = {
+//                editingTask = Task(id = 0, title = "", description = "", isDone = false)
+//            }) {
+//                Icon(imageVector = Icons.Default.Add, contentDescription = "Thêm task")
+//            }
+//        }
+//    ) { innerPadding ->
+//        LazyColumn(
+//            modifier = Modifier
+//                .fillMaxSize()
+//                .padding(innerPadding)
+//                .padding(horizontal = 16.dp),
+//            verticalArrangement = Arrangement.spacedBy(8.dp)
+//        ) {
+//            items(items = tasks, key = { it.id }) { task ->
+//                SwipeToDismissTaskItem(task = task,
+//                    onClick = {editingTask = task},
+//                    onDelete = {
+//                        viewModel.deleteTask(task)
+//                    },
+//                    onOpenDetail = { navController.navigate(Routes.taskDetailRoute(task.id)) })
+//            }
+//        }
+//
+//    }
+//    editingTask?.let {task ->
+//        TaskFormDialog(
+//            initialTitle = task.title,
+//            isEditing = task.id != 0,
+//            onDismiss = { editingTask = null },
+//            onConfirm = { newTitle ->
+//                if(task.id == 0){
+//                    viewModel.addTask(newTitle)
+//                }else {
+//                    viewModel.updateTask(task.copy(title = newTitle))
+//                }
+//                editingTask = null
+//            }
+//        )
+//    }
+//}
 
 @Composable
 fun TaskFormDialog(

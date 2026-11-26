@@ -22,4 +22,15 @@ class ColumnRepository(
             }
         }
     }
+
+    suspend fun ensureDefaultColumns(boardId: Int){
+
+        if (columnDao.countByBoard(boardId) == 0) {
+            listOf("To Do", "In Progress", "Done").forEachIndexed { index, name ->
+                columnDao.insert(ColumnEntity(boardId = boardId, name = name, position = index))
+            }
+        }
+    }
+
+    suspend fun deleteColumnById(columnId: Int) = columnDao.deleteById(columnId)
 }

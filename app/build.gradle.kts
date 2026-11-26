@@ -49,6 +49,7 @@ dependencies {
     implementation(libs.androidx.material3)
 
     implementation(libs.compose.material.icons)
+    implementation(libs.material3)
     implementation(libs.room.runtime)
     implementation(libs.room.ktx)
     ksp(libs.room.compiler)

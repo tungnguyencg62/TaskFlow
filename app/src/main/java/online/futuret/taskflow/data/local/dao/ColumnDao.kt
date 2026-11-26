@@ -30,6 +30,13 @@ interface ColumnDao {
     @Transaction
     @Query("SELECT * FROM columns WHERE boardId = :boardId ORDER BY position ASC")
     fun getColumnsWithTasks(boardId: Int): Flow<List<ColumnWithTasks>>
+
+    @Query("SELECT COUNT(*) FROM columns WHERE boardId = :boardId")
+    suspend fun countByBoard(boardId: Int): Int
+
+
+    @Query("DELETE FROM columns WHERE id = :columnId")
+    suspend fun deleteById(columnId: Int)
 }
 
 

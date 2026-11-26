@@ -1,8 +1,7 @@
 package online.futuret.taskflow.data.mapper
 
 import online.futuret.taskflow.data.local.entity.TaskEntity
-import online.futuret.taskflow.data.local.relation.ProjectWithTasks
-import online.futuret.taskflow.model.ProjectUi
+
 import online.futuret.taskflow.model.Task
 
 // Hàm mapping: TaskEntity (data layer) -> Task (UI layer)

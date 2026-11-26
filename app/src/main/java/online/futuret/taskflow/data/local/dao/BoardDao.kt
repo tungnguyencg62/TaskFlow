@@ -25,6 +25,9 @@ interface BoardDao {
 
     @Query("SELECT * FROM boards WHERE id = :boardId")
     suspend fun getById(boardId: Int): BoardEntity?
+
+    @Query("SELECT * FROM boards WHERE projectId = :projectId LIMIT 1")
+    suspend fun getFirstByProject(projectId: Int): BoardEntity?
 }
 
 

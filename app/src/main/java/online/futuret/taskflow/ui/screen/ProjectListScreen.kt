@@ -66,9 +66,13 @@ fun ProjectListScreen(
             items(items = projects, key = {it.id}){ project ->
                 Card(modifier = Modifier
                     .fillMaxWidth()
-//                    .clickable(
-//                    onClick = {navController.navigate(Routes.taskListRoute(project.id))}
-//                )
+                    .clickable(
+                    onClick = {
+                        viewModel.openProject(project.id){boardId ->
+                            navController.navigate(Routes.boardRoute(boardId))}
+                        }
+
+                )
                 ){
                     Column(modifier = Modifier.padding(16.dp)) {
                         Text(project.name, style = MaterialTheme.typography.titleMedium)

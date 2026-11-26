@@ -11,4 +11,16 @@ class BoardRepository(
     suspend fun updateBoard(board: BoardEntity) = boardDao.update(board)
     suspend fun deleteBoard(board: BoardEntity) = boardDao.delete(board)
     suspend fun getBoardById(boardId: Int) = boardDao.getById(boardId)
+    suspend fun getOrCreateDefaultBoard(projectId: Int):Int {
+        val existing = boardDao.getFirstByProject(projectId)
+        if (existing != null) {
+            return existing.id
+        }
+        val newBoard = BoardEntity(
+            projectId = projectId,
+            name = "Default Board",
+
+        )
+        return boardDao.insert(newBoard).toInt()
+    }
 }

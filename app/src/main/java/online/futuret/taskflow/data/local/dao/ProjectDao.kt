@@ -3,7 +3,8 @@ package online.futuret.taskflow.data.local.dao
 import androidx.room.*
 import kotlinx.coroutines.flow.Flow
 import online.futuret.taskflow.data.local.entity.ProjectEntity
-import online.futuret.taskflow.data.local.relation.ProjectWithTasks
+import online.futuret.taskflow.data.local.relation.ProjectTaskCountRow
+
 
 @Dao
 interface ProjectDao {
@@ -22,7 +23,20 @@ interface ProjectDao {
     @Query("SELECT * FROM projects WHERE id = :projectId")
     suspend fun getById(projectId: Int): ProjectEntity?
 
-    @Transaction
-    @Query("SELECT * FROM projects ORDER BY createdAt DESC")
-    fun getAllWithTasks(): Flow<List<ProjectWithTasks>>
+    @Query(
+        """
+    SELECT 
+        projects.id AS id,
+        projects.name AS name,
+        COUNT(tasks.id) AS taskCount,
+        SUM(CASE WHEN tasks.isDone = 1 THEN 1 ELSE 0 END) AS doneCount
+    FROM projects
+    LEFT JOIN boards ON boards.projectId = projects.id
+    LEFT JOIN columns ON columns.boardId = boards.id
+    LEFT JOIN tasks ON tasks.columnId = columns.id
+    GROUP BY projects.id
+    ORDER BY projects.name ASC
+    """
+    )
+    fun getProjectsWithTaskCounts(): Flow<List<ProjectTaskCountRow>>
 }
