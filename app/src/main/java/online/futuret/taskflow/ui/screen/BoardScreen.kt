@@ -41,6 +41,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import online.futuret.taskflow.model.ColumnUi
 import online.futuret.taskflow.model.Task
+import online.futuret.taskflow.ui.components.ReorderableTaskList
 import online.futuret.taskflow.ui.navigation.Routes
 import online.futuret.taskflow.ui.viewmodel.BoardViewModel
 import online.futuret.taskflow.ui.viewmodel.TaskViewModel
@@ -176,20 +177,27 @@ private fun ColumnCard(
         ) {
             Icon(Icons.Default.Delete, contentDescription = "Delete Column", tint = MaterialTheme.colorScheme.error)
         }
-
-        LazyColumn(
-            modifier = Modifier.weight(1f),
-            verticalArrangement = Arrangement.spacedBy(8.dp)
-        ) {
-            items(items = column.tasks, key = { it.id }) { task ->
-                SwipeToDismissTaskItem(
-                    task = task,
-                    onClick = { editingTask = task },
-                    onDelete = { taskViewModel.deleteTask(task) },
-                    onOpenDetail = {navController.navigate(Routes.taskDetailRoute(task.id))}
-                )
-            }
-        }
+        ReorderableTaskList(
+            tasks= column.tasks,
+        onReorder={},
+        onTaskClick={ task -> editingTask = task },
+        onTaskDelete={ task -> taskViewModel.deleteTask(task) },
+        onOpenDetail={ task -> navController.navigate(Routes.taskDetailRoute(task.id)) },
+            modifier = Modifier.weight(1f)
+        )
+//        LazyColumn(
+//            modifier = Modifier.weight(1f),
+//            verticalArrangement = Arrangement.spacedBy(8.dp)
+//        ) {
+//            items(items = column.tasks, key = { it.id }) { task ->
+//                SwipeToDismissTaskItem(
+//                    task = task,
+//                    onClick = { editingTask = task },
+//                    onDelete = { taskViewModel.deleteTask(task) },
+//                    onOpenDetail = {navController.navigate(Routes.taskDetailRoute(task.id))}
+//                )
+//            }
+//        }
 
         TextButton(
             onClick = {editingTask = Task(id = 0, title = "", description = "", columnId = column.id, position = 0)}

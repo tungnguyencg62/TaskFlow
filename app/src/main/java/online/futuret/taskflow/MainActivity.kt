@@ -48,7 +48,7 @@ class MainActivity : ComponentActivity() {
 
                     NavHost(
                         navController = navController,
-                        startDestination = "drag_playground"
+                        startDestination = Routes.PROJECT_LIST
                     ) {
                         composable(Routes.PROJECT_LIST) {
                             ProjectListScreen(
